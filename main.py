@@ -9,11 +9,11 @@ import maxminddb
 import json
 
 # Load the MaxMind GeoLite2 databases
-country_db = maxminddb.open_database('data/GeoLite2-Country.mmdb')
-city_db = maxminddb.open_database('data/GeoLite2-City.mmdb')
-asn_df = pd.read_csv('data/GeoLite2-ASN-Blocks-IPv4.csv')
-country_name_codes_df = pd.read_csv('data/country_codes.csv')
-world_cities_df = pd.read_csv('data/world_cities.csv')
+country_db = maxminddb.open_database('geo_data/GeoLite2-Country.mmdb')
+city_db = maxminddb.open_database('geo_data/GeoLite2-City.mmdb')
+asn_df = pd.read_csv('geo_data/GeoLite2-ASN-Blocks-IPv4.csv')
+country_name_codes_df = pd.read_csv('geo_data/country_codes.csv')
+world_cities_df = pd.read_csv('geo_data/world_cities.csv')
 
 asn_to_network_lookup = dict(zip(asn_df['autonomous_system_number'], asn_df['network'].str.split('/', expand=True).iloc[:, 0].tolist()))
 # I wanna create world_cities_lookup the key is the city name in addition to the country code seperated by a comma and the value is the value is the latitude and longitude
@@ -100,4 +100,4 @@ fig.update_layout(
 
 fig.update_layout(coloraxis_colorbar=dict(title='Alarm Counts'))
 
-fig.write_html('figure.html', auto_open=True)
+fig.write_html('alarms_map_figure.html', auto_open=True)
