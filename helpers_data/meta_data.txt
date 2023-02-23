@@ -1,0 +1,42 @@
+countries.json:
+  curl -X 'GET' \
+  'https://ihr.iijlab.net/ihr/api/countries/' \
+  -H 'accept: application/json'
+
+network_disconnections.json:
+  curl -X 'GET' \
+  'https://ihr.iijlab.net/ihr/api/disco/events/?starttime__gte=2023-02-18T00%3A00%3A00.000Z&endtime__lte=2023-02-20T23%3A59%3A59.000Z' \
+  -H 'accept: application/json'
+
+hegemony.json:
+  curl -X 'GET' \
+  'https://ihr.iijlab.net/ihr/api/hegemony/?timebin__lte=2023-02-20T23%3A59%3A59.000Z&timebin__gte=2023-02-18T00%3A00%3A00.000Z&asn=62513' \
+  -H 'accept: application/json'
+
+hegemony_alarms.json:
+  curl -X 'GET' \
+  'https://ihr.iijlab.net/ihr/api/hegemony/alarms/?timebin__lte=2023-02-20T23%3A59%3A59.000Z&timebin__gte=2023-02-18T00%3A00%3A00.000Z' \
+  -H 'accept: application/json'
+
+hegemony_cones.json:
+  curl -X 'GET' \
+  'https://ihr.iijlab.net/ihr/api/hegemony/cones/?timebin__lte=2023-02-20T23%3A59%3A59.000Z&timebin__gte=2023-02-18T00%3A00%3A00.000Z&asn=62513' \
+  -H 'accept: application/json'
+
+hegemony_countries.json:
+  curl -X 'GET' \
+  'https://ihr.iijlab.net/ihr/api/hegemony/countries/?country=EG' \
+  -H 'accept: application/json'
+
+hegemony_prefixes.json:
+  curl -X 'GET' \
+  'https://ihr.iijlab.net/ihr/api/hegemony/prefixes/?timebin__lte=2023-02-20T23%3A59%3A59.000Z&timebin__gte=2023-02-18T00%3A00%3A00.000Z&originasn=61138' \
+  -H 'accept: application/json'
+
+network_delay_alarms.json:
+https://ihr.iijlab.net/ihr/api/network_delay/alarms/?format=json&deviation__gte=20&startpoint_type=zf&timebin__gte=2023-02-18T00:00:00.000Z&timebin__lte=2023-02-20T23:59:59.000Z
+
+networks.json:
+https://ihr.iijlab.net/ihr/api/hegemony/?format=json&originasn=137409&af=4&timebin__gte=2023-02-18T00:00:00.000Z&timebin__lte=2023-02-20T23:59:59.000Z&ordering=timebin
+
+
