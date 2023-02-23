@@ -16,3 +16,5 @@ The tool will be integrated with IHR's global report to allow users to quickly a
 ## Prerequisites
 
 ## Installation
+
+## Usage
