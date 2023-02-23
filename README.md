@@ -25,6 +25,7 @@ The tool will be integrated with IHR's global report to allow users to quickly a
 ## Usage
 
 # Screenshoots
+![alarms_map_figure](assets/alarms_map_figure.png)
 
 # Video Recording
 
