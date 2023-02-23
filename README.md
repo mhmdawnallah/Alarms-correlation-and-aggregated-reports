@@ -11,3 +11,8 @@ The JS module will be responsible for analyzing alarms and grouping them based o
 
 The tool will be integrated with IHR's global report to allow users to quickly access the aggregated alarms directly from the report.
 
+# Installation and Usage
+
+## Prerequisites
+
+## Installation
