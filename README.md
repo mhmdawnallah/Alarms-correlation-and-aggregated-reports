@@ -11,6 +11,11 @@ The JS module will be responsible for analyzing alarms and grouping them based o
 
 The tool will be integrated with IHR's global report to allow users to quickly access the aggregated alarms directly from the report.
 
+# Data Sources
+- `MaxMind`: Used to obtain geo-location information for IP addresses, ASN, City, and Countries found in the IHR alarms dataset
+- `IHR alarms dataset`: The alarms dataset was obtained from IHR's API endpoint. The dataset contains various metrics that are monitored by IHR's anomaly detectors. The data is in JSON format and is retrieved using HTTP GET requests.
+   ![alarm-api-endpoints](assets/alarm-api-endpoints.jpg)
+
 # Installation and Usage
 
 ## Prerequisites
