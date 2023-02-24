@@ -78,8 +78,6 @@ def lookup_latitude_longitude(row):
 # Use apply() to apply the lookup function to each row of the dataframe
 merged_counts_df[['latitude', 'longitude']] = merged_counts_df.apply(lookup_latitude_longitude, axis=1)
 
-        
-print(merged_counts_df)
 counts.drop(counts[counts['country'] == 'Unknown'].index, inplace=True)
 grouped_merged_data = merged_counts_df.groupby(['country', 'country_code', 'country_alpha3']).sum().reset_index()
 
@@ -100,4 +98,4 @@ fig.update_layout(
 
 fig.update_layout(coloraxis_colorbar=dict(title='Alarm Counts'))
 
-fig.write_html('figures/alarms_map_figure.html', auto_open=True)
+fig.show()
