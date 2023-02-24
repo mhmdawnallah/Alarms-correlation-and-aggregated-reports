@@ -100,4 +100,4 @@ fig.update_layout(
 
 fig.update_layout(coloraxis_colorbar=dict(title='Alarm Counts'))
 
-fig.write_html('alarms_map_figure.html', auto_open=True)
+fig.write_html('figures/alarms_map_figure.html', auto_open=True)
