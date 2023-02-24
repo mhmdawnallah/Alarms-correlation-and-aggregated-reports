@@ -1,5 +1,5 @@
 # Alarms Correlation and Aggregated Reports
-This is a proof of concept implementation of simple anomaly detectors to identify changes in monitored metrics in IHR. This often results in a lot of alarms being displayed as tables in IHR global reports. The most important events usually generate numerous alarms across multiple datasets. It's an online tool for grouping topologically or geographically related alarms that happen at the same time and providing multi-dimensional reports.
+This is a proof of concept implementation of correlation and aggregation of simple anomaly detectors to identify changes in monitored metrics in IHR. This often results in a lot of alarms being displayed as tables in IHR global reports. The most important events usually generate numerous alarms across multiple datasets. It's an online tool for grouping topologically or geographically related alarms that happen at the same time and providing multi-dimensional reports.
 
 
 # Project Overview
