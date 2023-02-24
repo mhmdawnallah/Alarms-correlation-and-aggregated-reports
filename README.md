@@ -30,6 +30,6 @@ The tool will be integrated with IHR's global report to allow users to quickly a
 # Video Recording
 
 # Live Report
-[Live Report](https://mhmdawnallah.github.io/Alarms-correlation-and-aggregated-reports/)
+[Live Report](https://mhmdawnallah.github.io/Alarms-correlation-and-aggregated-reports/figures/alarms_map_figure.html)
 # Conclusion
 This tool provides an easy way to analyze and aggregate alarms in IHR, making it easier to identify important events that generate multiple alarms across multiple datasets. By grouping topologically or geographically related alarms, multi-dimensional reports can be generated that provide a more comprehensive view of the data.
