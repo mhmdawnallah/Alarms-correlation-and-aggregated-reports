@@ -17,12 +17,16 @@ The tool will be integrated with IHR's global report to allow users to quickly a
    ![alarm-api-endpoints](assets/alarm-api-endpoints.jpg)
 
 # Installation and Usage
-
 ## Prerequisites
-
-## Installation
-
+Run the following command to install python dependencies:
+```bash
+pip install -r requirements.txt
+```
 ## Usage
+Run plotting backend application:
+```bash
+python backend/backend.py
+```
 
 # Screenshoots
 ![alarms-map-figure](assets/alarms-map-figure.png)
