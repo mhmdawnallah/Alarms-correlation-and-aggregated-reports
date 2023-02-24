@@ -22,12 +22,11 @@ Run the following command to install python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-## Usage
+## Quick Start
 Run plotting backend application:
 ```bash
 python backend/backend.py
 ```
-
 # Screenshoots
 ![alarms-map-figure](assets/alarms-map-figure.png)
 
