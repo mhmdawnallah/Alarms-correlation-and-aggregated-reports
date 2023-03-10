@@ -1,0 +1,18 @@
+{
+    "data" : [
+        {
+            "event_type": "defcon",
+            "country_name": "",
+            "country_code": "",
+            "city_name": "",
+            "tr_worthy": true
+        },
+        {
+            "event_type": "defcon",
+            "country_name": "",
+            "country_code": "",
+            "city_name": "",
+            "tr_worthy": true
+        },
+    ]
+}

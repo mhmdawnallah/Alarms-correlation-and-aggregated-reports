@@ -1,10 +1,5 @@
 import pandas as pd
-import geopandas as gpd
-import pycountry
-
 import plotly.express as px
-import requests
-import plotly.graph_objs as go
 import maxminddb
 import json
 
@@ -16,13 +11,12 @@ country_name_codes_df = pd.read_csv('geo_data/country_codes.csv')
 world_cities_df = pd.read_csv('geo_data/world_cities.csv')
 
 asn_to_network_lookup = dict(zip(asn_df['autonomous_system_number'], asn_df['network'].str.split('/', expand=True).iloc[:, 0].tolist()))
-# I wanna create world_cities_lookup the key is the city name in addition to the country code seperated by a comma and the value is the value is the latitude and longitude
 world_cities_lookup = dict(zip(world_cities_df['city'].str.title() + ', ' + world_cities_df['country_code'].str.upper(), world_cities_df[['latitude', 'longitude']].values.tolist()))
 
 def get_country_city_from_asn(asn):
     ip = asn_to_network_lookup.get(int(asn), None)
     if not ip:
-        return "Unknown", "Unknown"
+        return "Unknown", "Unknown", "Unknown"
     
     country_db_response = country_db.get(ip_address=ip)
     city_db_response = city_db.get(ip_address=ip)
@@ -37,11 +31,24 @@ def get_country_city_from_asn(asn):
                 raise IndexError
         else:
             country_name = "Unknown"
+            country_code = "Unknown"
+    else:
+        country_name = "Unknown"
+        country_code = "Unknown"
             
     if city_db_response:
         city_name = city_db_response['city']['names']['en'] if 'city' in city_db_response else "Unknown"
+    else:
+        city_name = "Unknown"
     return country_name, country_code, city_name
- 
+
+def lookup_latitude_longitude(row):
+    lookup_key = row['city'] + ', ' + row['country_code']
+    if lookup_key in world_cities_lookup:
+        return pd.Series({'latitude': world_cities_lookup[lookup_key][0], 'longitude': world_cities_lookup[lookup_key][1]})
+    else:
+        return pd.Series({'latitude': None, 'longitude': None})
+
 with open("alarms_data/hegemony_alarms.json", "r") as f:
     hegemony_alarms_data = json.load(f)
 hegemony_alarms_df = pd.DataFrame(hegemony_alarms_data['results'])
@@ -50,46 +57,79 @@ with open("alarms_data/network_delay_alarms.json", "r") as f:
     network_delay_alarms_data = json.load(f)
 network_delay_alarms_df = pd.DataFrame(network_delay_alarms_data['results'])
 
+with open("alarms_data/bgp_alarms.json", "r") as fh:
+    bgp_alerts_data = json.load(fh)
+    
+bgp_alarms = []
+for entry in bgp_alerts_data:
+    event_type = entry['event_type']
+    summary = entry['summary']
+    
+    for victim in summary['victims']:
+        country_name, country_code, city_name = get_country_city_from_asn(victim)
+        
+        new_entry = {
+            'event_type': event_type,
+            'country': country_name,
+            'country_code': country_code,
+            'city': city_name,
+            'bgp_traceroute_worthy': int(bool(summary['tr_worthy']))
+        }
+        bgp_alarms.append(new_entry)
+bgp_alarms_df = pd.DataFrame(bgp_alarms)
+
+bgp_alarms_pivot_df = pd.pivot_table(bgp_alarms_df, 
+                          index=['country', 'country_code', 'city'], 
+                          columns='event_type',
+                          values='bgp_traceroute_worthy',
+                          aggfunc='count',
+                          fill_value=0)
+
+bgp_alarms_pivot_df['bgp_traceroute_worthy'] = bgp_alarms_df.groupby(['country', 'country_code', 'city'])['bgp_traceroute_worthy'].sum().values
+bgp_alarms_pivot_df = bgp_alarms_pivot_df.reset_index()
+bgp_alarms_pivot_df.columns = ['country', 'country_code', 'city'] + [f"{col}_alarm_counts" for col in bgp_alarms_pivot_df.columns[3:]]
+
 hegemony_alarms_df[['country', 'country_code', 'city']] = hegemony_alarms_df['asn'].apply(lambda x: pd.Series(get_country_city_from_asn(x)))
 network_delay_alarms_df[['country', 'country_code', 'city']] = network_delay_alarms_df['startpoint_name'].apply(lambda x: pd.Series(get_country_city_from_asn(x)))
 
-# Aggregate the alarms by country and continent
 hegemony_counts = hegemony_alarms_df.groupby(['country','country_code','city']).size().reset_index(name='hegemony_alarm_counts')
 delay_counts = network_delay_alarms_df.groupby(['country','country_code','city']).size().reset_index(name='delay_alarm_counts')
 
-# Merge the two counts datasets
 counts = pd.merge(hegemony_counts, delay_counts, how='outer', on=['country','country_code','city'])
+counts = pd.merge(counts, bgp_alarms_pivot_df, how='outer', on=['country','country_code','city'])
+counts.drop(counts[counts['country'] == 'Unknown'].index, inplace=True)
 
 counts['hegemony_alarm_counts'] = counts['hegemony_alarm_counts'].fillna(0).astype(int)
 counts['delay_alarm_counts'] = counts['delay_alarm_counts'].fillna(0).astype(int)
-counts['total_alarm_counts'] = counts['hegemony_alarm_counts'] + counts['delay_alarm_counts']
+counts['defcon_alarm_counts'] = counts['defcon_alarm_counts'].fillna(0).astype(int)
+counts['moas_alarm_counts'] = counts['moas_alarm_counts'].fillna(0).astype(int)
+counts['submoas_alarm_counts'] = counts['submoas_alarm_counts'].fillna(0).astype(int)
+counts['edges_alarm_counts'] = counts['moas_alarm_counts'].fillna(0).astype(int)
+counts['bgp_traceroute_worthy_alarm_counts'] = counts['bgp_traceroute_worthy_alarm_counts'].fillna(0).astype(int)
+counts['total_alarm_counts'] = counts['hegemony_alarm_counts'] + counts['delay_alarm_counts'] + counts['defcon_alarm_counts'] + counts['moas_alarm_counts'] + counts['submoas_alarm_counts'] + counts['edges_alarm_counts']
 
 merged_counts_df = pd.merge(counts, country_name_codes_df, how='left', on=['country','country_code'])
-merged_counts_df['country_alpha3'] = merged_counts_df['country_code'].apply(lambda x: pycountry.countries.get(alpha_2=x).alpha_3)
 
-# Define a function to look up the latitude and longitude values for a given row
-def lookup_latitude_longitude(row):
-    lookup_key = row['city'] + ', ' + row['country_code']
-    if lookup_key in world_cities_lookup:
-        return pd.Series({'latitude': world_cities_lookup[lookup_key][0], 'longitude': world_cities_lookup[lookup_key][1]})
-    else:
-        return pd.Series({'latitude': None, 'longitude': None})
-
-# Use apply() to apply the lookup function to each row of the dataframe
 merged_counts_df[['latitude', 'longitude']] = merged_counts_df.apply(lookup_latitude_longitude, axis=1)
 
-counts.drop(counts[counts['country'] == 'Unknown'].index, inplace=True)
+
 grouped_merged_data = merged_counts_df.groupby(['country', 'country_code', 'country_alpha3']).sum().reset_index()
+# find the data rows where submoas_alarm_counts is not 0
+print(grouped_merged_data[grouped_merged_data['submoas_alarm_counts'] != 0])
+
+LABELS = {'total_alarm_counts': 'Total Alarm Counts', 'hegemony_alarm_counts': 'Hegemony Dependency Alarm Counts',
+                            'delay_alarm_counts': 'Network Delay Alarm Counts', 'moas_alarm_counts': 'BGP MOAS Alarm Counts', 
+                            'defcon_alarm_counts': 'BGP Defcon Alarm Counts', 'submoas_alarm_counts': 'BGP Sub-MOAS Alarm Counts',
+                            'edges_alarm_counts': 'BGP Edges Alarm Counts', 'bgp_traceroute_worthy_alarm_counts': 'BGP Warthy Traceroute Alarm Counts'}
+HOVER_DATA = ['total_alarm_counts', 'hegemony_alarm_counts', 'delay_alarm_counts', 'moas_alarm_counts',
+              'defcon_alarm_counts', 'submoas_alarm_counts', 'edges_alarm_counts', 'bgp_traceroute_worthy_alarm_counts']
 
 fig = px.choropleth(grouped_merged_data, locations='country_alpha3', color='total_alarm_counts',
                     hover_name='country', title='Aggregated IHR alarms counts by Country and City', color_continuous_scale='Viridis',
-                    hover_data=['total_alarm_counts', 'hegemony_alarm_counts', 'delay_alarm_counts'],
-                    labels={'country_alpha3': 'Country Code', 'total_alarm_counts': 'Total Alarm Counts', 'hegemony_alarm_counts': 'Hegemony Dependency Alarm Counts', 'delay_alarm_counts': 'Network Delay Alarm Counts'})
+                    hover_data=HOVER_DATA,labels=dict(LABELS,country_alpha3='Country Code'))
 
 fig.add_trace(px.scatter_geo(merged_counts_df, lat='latitude', lon='longitude', hover_name='city', size='total_alarm_counts',
-                             hover_data=['total_alarm_counts', 'hegemony_alarm_counts', 'delay_alarm_counts'],
-                             labels={'total_alarm_counts': 'Total Alarm Counts', 'hegemony_alarm_counts': 'Hegemony Dependency Alarm Counts', 'delay_alarm_counts': 'Network Delay Alarm Counts'}).data[0])
-
+                             hover_data=HOVER_DATA,labels=LABELS).data[0])
 
 fig.update_layout(
     plot_bgcolor='rgba(0,0,0,0)',
@@ -98,4 +138,4 @@ fig.update_layout(
 
 fig.update_layout(coloraxis_colorbar=dict(title='Alarm Counts'))
 
-fig.show()
+fig.write_html("figures/alarms_map_figure.html",auto_open=True)
